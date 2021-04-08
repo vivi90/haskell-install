@@ -4,40 +4,38 @@
 #
 # Tested on Manjaro Linux.
 #
-# Created: 2020 by Vivien Richter <vivien-richter@outlook.de>
+# Created: 2021 by Vivien Richter <vivien-richter@outlook.de>
 # License: CC-BY-4.0
-# Version: 1.0.0
+# Version: 2.0.0
 
-# Installs GHC
-sudo pacman -S ghc ghc-libs ghc-static
+# Configuration
+CYP_SOURCE="https://gitlab.imn.htwk-leipzig.de/waldmann/cyp"
 
-# Installs GHCUP
-sudo wget https://gitlab.haskell.org/haskell/ghcup/raw/master//ghcup -O /usr/bin/ghcup
-sudo chmod +x /usr/bin/ghcup
-echo "export PATH=\$PATH:/home/$USER/.ghcup/bin" >> ~/.profile
-export PATH=$PATH:/home/$USER/.ghcup/bin
-ghcup upgrade
-
-# Installs Cabal
-ghcup install-cabal 3.2.0.0
+# Installs GHC, libs and Cabal
+echo -e '\033[1mInstalling GHC, libs and Cabal..\033[0m'
+sudo pacman -S ghc ghc-libs ghc-static cabal-install
+ghci --version
+cabal --version
+cabal update
 echo "export PATH=\$PATH:/home/$USER/.cabal/bin" >> ~/.profile
 export PATH=$PATH:/home/$USER/.cabal/bin
-cabal update
 
-# Installs Leancheck
-cabal install --lib leancheck
+# Installs LeanCheck
+read -e -n 1 -p $'\033[1mDo you want to install LeanCheck? [y/n]: \033[0m'
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    cabal install --lib leancheck
+fi
 
-# Installs Cyp
-git clone https://gitlab.imn.htwk-leipzig.de/waldmann/cyp/
-cd cyp
-cabal install --allow-newer
+# Installs cyp
+read -e -n 1 -p $'\033[1mDo you want to install cyp? [y/n]: \033[0m'
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    git clone "$CYP_SOURCE" cyp
+    cd cyp
+    cabal install --allow-newer
+    cyp -m test-data/pos-mod/by-rewriting.cyp
+    cd ..
+    rm -Rf cyp
+fi
 
-# Tests Cyp
-cyp -m test-data/pos-mod/by-rewriting.cyp
-
-# Cleanup
-cd ..
-rm -Rf cyp
-
-# Done
-exit 0
+# Done.
+echo -e '\033[1mDone.\033[0m'
